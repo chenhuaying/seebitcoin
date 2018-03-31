@@ -4,8 +4,11 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"net"
+	"net/http"
 	"os"
 	"strconv"
+	"time"
 
 	"github.com/PuerkitoBio/goquery"
 	_ "github.com/go-sql-driver/mysql"
@@ -78,6 +81,18 @@ func main() {
 	defer f.Close()
 
 	c := colly.NewCollector()
+	c.WithTransport(&http.Transport{
+		Proxy: http.ProxyFromEnvironment,
+		DialContext: (&net.Dialer{
+			Timeout:   30 * time.Second,
+			KeepAlive: 30 * time.Second,
+			DualStack: true,
+		}).DialContext,
+		MaxIdleConns:          100,
+		IdleConnTimeout:       90 * time.Second,
+		TLSHandshakeTimeout:   30 * time.Second,
+		ExpectContinueTimeout: 30 * time.Second,
+	})
 
 	bitcoinlist := make([]*BitcoinData, 0)
 
@@ -164,6 +179,9 @@ func main() {
 		f.Write(bData)
 	})
 
-	c.Visit("https://coinmarketcap.com/coins/views/all/")
+	err = c.Visit("https://coinmarketcap.com/coins/views/all/")
 	//c.Visit("https://coinmarketcap.com/coins/")
+	if err != nil {
+		fmt.Println("vist coins all error:", err)
+	}
 }
