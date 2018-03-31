@@ -81,14 +81,14 @@ func main() {
 
 	bitcoinlist := make([]*BitcoinData, 0)
 
-	c.OnHTML("#currencies > tbody", func(e *colly.HTMLElement) {
+	c.OnHTML("#currencies-all > tbody", func(e *colly.HTMLElement) {
 		e.DOM.Find("tr").Each(func(i int, s *goquery.Selection) {
 			data := &BitcoinData{}
 			name, exist := s.Find("td:nth-child(2)").Attr("data-sort")
 			if exist {
 				data.Name = name
 				fmt.Println(data.Name)
-				mCapAttr, ex := s.Find("td:nth-child(3)").Attr("data-usd")
+				mCapAttr, ex := s.Find("td:nth-child(4)").Attr("data-usd")
 				if ex {
 					marketCap, err := strconv.ParseFloat(mCapAttr, 64)
 					if err == nil {
@@ -98,7 +98,7 @@ func main() {
 					}
 				}
 
-				priceAttr, ex := s.Find("td:nth-child(4)>a").Attr("data-usd")
+				priceAttr, ex := s.Find("td:nth-child(5)>a").Attr("data-usd")
 				if ex {
 					price, err := strconv.ParseFloat(priceAttr, 64)
 					if err == nil {
@@ -108,7 +108,7 @@ func main() {
 					}
 				}
 
-				volumeAttr, ex := s.Find("td:nth-child(5)>a").Attr("data-usd")
+				volumeAttr, ex := s.Find("td:nth-child(7)>a").Attr("data-usd")
 				if ex {
 					volume, err := strconv.ParseFloat(volumeAttr, 64)
 					if err == nil {
@@ -128,7 +128,7 @@ func main() {
 					}
 				}
 
-				changeAttr, ex := s.Find("td:nth-child(7)").Attr("data-percentusd")
+				changeAttr, ex := s.Find("td:nth-child(9)").Attr("data-percentusd")
 				if ex {
 					change, err := strconv.ParseFloat(changeAttr, 64)
 					if err == nil {
@@ -141,10 +141,11 @@ func main() {
 				bitcoinlist = append(bitcoinlist, data)
 				cmd := fmt.Sprintf("INSERT INTO %s (name, marketcap, price, volume_24h, circulating_supply, change_24h, time) values ('%s', %d, %f, %d, %d, %f, NOW())",
 					table, data.Name, data.MarketCap, data.Price, data.Volume_24h, data.CirculatingSupply, data.Change_24h)
-				_, err := db.Query(cmd)
+				insert, err := db.Query(cmd)
 				if err != nil {
 					fmt.Println("insert into database error:", err)
 				}
+				insert.Close()
 			}
 		})
 	})
@@ -163,6 +164,6 @@ func main() {
 		f.Write(bData)
 	})
 
-	//c.Visit("https://coinmarketcap.com/all/views/all/")
-	c.Visit("https://coinmarketcap.com/coins/")
+	c.Visit("https://coinmarketcap.com/coins/views/all/")
+	//c.Visit("https://coinmarketcap.com/coins/")
 }
