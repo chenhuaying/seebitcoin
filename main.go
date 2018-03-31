@@ -10,6 +10,7 @@ import (
 	"github.com/PuerkitoBio/goquery"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gocolly/colly"
+	"github.com/spf13/viper"
 )
 
 type BitcoinData struct {
@@ -21,9 +22,49 @@ type BitcoinData struct {
 	Change_24h        float64
 }
 
-func main() {
+const (
+	DEFAULT_USER     = "chy"
+	DEFAULT_PASSWD   = "123456"
+	DEFAULT_IP       = "192.168.56.102"
+	DEFAULT_PORT     = "3306"
+	DEFAULT_DATABASE = "test"
+	DEFAULT_TABLE    = "bitcoins"
 
-	db, err := sql.Open("mysql", "chy:123456@tcp(192.168.56.102:3306)/test")
+	CONF_KEY_DBUSER   = "dbUser"
+	CONF_KEY_DBPASSWD = "dbPasswd"
+	CONF_KEY_DBIP     = "dbIP"
+	CONF_KEY_DBPORT   = "dbPort"
+	CONF_KEY_DATABASE = "database"
+	CONF_KEY_TABLE    = "table"
+)
+
+func main() {
+	viper.SetConfigName("config")
+	viper.AddConfigPath(".")
+	viper.AddConfigPath("$HOME/.seebitcoin")
+	viper.AddConfigPath("/etc/seebitcoin")
+
+	viper.SetDefault(CONF_KEY_DBUSER, DEFAULT_USER)
+	viper.SetDefault(CONF_KEY_DBPASSWD, DEFAULT_PASSWD)
+	viper.SetDefault(CONF_KEY_DBIP, DEFAULT_IP)
+	viper.SetDefault(CONF_KEY_DBPORT, DEFAULT_PORT)
+	viper.SetDefault(CONF_KEY_DATABASE, DEFAULT_DATABASE)
+	viper.SetDefault(CONF_KEY_TABLE, DEFAULT_TABLE)
+
+	if err := viper.ReadInConfig(); err != nil {
+		fmt.Println("read config error: ", err)
+	}
+
+	dbUser := viper.GetString(CONF_KEY_DBUSER)
+	dbPasswd := viper.GetString(CONF_KEY_DBPASSWD)
+	dbAddr := viper.GetString(CONF_KEY_DBIP)
+	dbPort := viper.GetString(CONF_KEY_DBPORT)
+	database := viper.GetString(CONF_KEY_DATABASE)
+	table := viper.GetString(CONF_KEY_TABLE)
+
+	dataSource := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", dbUser, dbPasswd, dbAddr, dbPort, database)
+
+	db, err := sql.Open("mysql", dataSource)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -40,7 +81,6 @@ func main() {
 
 	bitcoinlist := make([]*BitcoinData, 0)
 
-	// Find and visit all links
 	c.OnHTML("#currencies > tbody", func(e *colly.HTMLElement) {
 		e.DOM.Find("tr").Each(func(i int, s *goquery.Selection) {
 			data := &BitcoinData{}
@@ -99,8 +139,8 @@ func main() {
 				}
 
 				bitcoinlist = append(bitcoinlist, data)
-				cmd := fmt.Sprintf("INSERT INTO bitcoins (name, marketcap, price, volume_24h, circulating_supply, change_24h, time) values ('%s', %d, %f, %d, %d, %f, NOW())",
-					data.Name, data.MarketCap, data.Price, data.Volume_24h, data.CirculatingSupply, data.Change_24h)
+				cmd := fmt.Sprintf("INSERT INTO %s (name, marketcap, price, volume_24h, circulating_supply, change_24h, time) values ('%s', %d, %f, %d, %d, %f, NOW())",
+					table, data.Name, data.MarketCap, data.Price, data.Volume_24h, data.CirculatingSupply, data.Change_24h)
 				_, err := db.Query(cmd)
 				if err != nil {
 					fmt.Println("insert into database error:", err)
