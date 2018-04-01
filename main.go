@@ -154,13 +154,22 @@ func main() {
 				}
 
 				bitcoinlist = append(bitcoinlist, data)
-				cmd := fmt.Sprintf("INSERT INTO %s (name, marketcap, price, volume_24h, circulating_supply, change_24h, time) values ('%s', %d, %f, %d, %d, %f, NOW())",
-					table, data.Name, data.MarketCap, data.Price, data.Volume_24h, data.CirculatingSupply, data.Change_24h)
-				insert, err := db.Query(cmd)
+				query := fmt.Sprintf("INSERT INTO %s (name, marketcap, price, volume_24h, circulating_supply, change_24h, time) values (?, ?, ?, ?, ?, ?, NOW())", table)
+				insert, err := db.Exec(query, data.Name, data.MarketCap, data.Price, data.Volume_24h, data.CirculatingSupply, data.Change_24h)
 				if err != nil {
 					fmt.Println("insert into database error:", err)
+				} else {
+					if insert == nil {
+						fmt.Println("insert return nil")
+					} else {
+						lastid, err := insert.LastInsertId()
+						if err != nil {
+							fmt.Println(err)
+						} else {
+							fmt.Println(lastid)
+						}
+					}
 				}
-				insert.Close()
 			}
 		})
 	})
