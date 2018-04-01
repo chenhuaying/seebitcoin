@@ -46,27 +46,25 @@ func GetBitcoinsInfo(db *sql.DB) (infos map[string]int64) {
 			panic(err.Error()) // proper error handling instead of panic in your app
 		}
 
-		// Now do something with the data.
-		// Here we just print each column as a string.
-		var value string
-		for i, col := range values {
-			// Here we can check if the value is nil (NULL value)
-			if col == nil {
-				value = "NULL"
-			} else {
-				value = string(col)
+		/*
+			var value string
+			for i, col := range values {
+				// Here we can check if the value is nil (NULL value)
+				if col == nil {
+					value = "NULL"
+				} else {
+					value = string(col)
+				}
+				//fmt.Println(columns[i], ": ", value)
 			}
-			fmt.Println(columns[i], ": ", value)
-			switch i {
-			}
-		}
+		*/
 		id, err := strconv.ParseInt(string(values[0]), 10, 64)
 		if err != nil {
 			fmt.Println("parse info id error:", err)
 		} else {
 			infos[string(values[1])] = id
 		}
-		fmt.Println("-----------------------------------")
+		//fmt.Println("-----------------------------------")
 	}
 	if err = rows.Err(); err != nil {
 		panic(err.Error()) // proper error handling instead of panic in your app
