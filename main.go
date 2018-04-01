@@ -81,6 +81,7 @@ func main() {
 	defer f.Close()
 
 	c := colly.NewCollector()
+	c.SetRequestTimeout(30 * time.Second)
 	c.WithTransport(&http.Transport{
 		Proxy: http.ProxyFromEnvironment,
 		DialContext: (&net.Dialer{
