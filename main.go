@@ -184,16 +184,17 @@ func main() {
 						fmt.Println("add new coin error:", err)
 					} else {
 						id = lid
-						_, err = AddMarketCap(id, data.MarketCap, data.CirculatingSupply, data.Volume_24h, data.Change_24h, db)
-						if err != nil {
-							fmt.Printf("add %s, id(%d), MarketCap(%d), CirculatingSupply(%d), Volume_24h(%d), Change_24h(%f) error: %s\n",
-								data.Name, id, data.MarketCap, data.CirculatingSupply, data.Volume_24h, data.Change_24h, err)
-						}
+					}
+				} else {
+					_, err = AddMarketCap(id, data.MarketCap, data.CirculatingSupply, data.Volume_24h, data.Change_24h, db)
+					if err != nil {
+						fmt.Printf("add %s, id(%d), MarketCap(%d), CirculatingSupply(%d), Volume_24h(%d), Change_24h(%f) error: %s\n",
+							data.Name, id, data.MarketCap, data.CirculatingSupply, data.Volume_24h, data.Change_24h, err)
+					}
 
-						_, err = AddPrice(id, data.Price, db)
-						if err != nil {
-							fmt.Println("add %s, id(%d), Price(%f), error: %s\n", data.Name, id, data.Price)
-						}
+					_, err = AddPrice(id, data.Price, db)
+					if err != nil {
+						fmt.Println("add %s, id(%d), Price(%f), error: %s\n", data.Name, id, data.Price)
 					}
 				}
 			}
