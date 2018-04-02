@@ -73,6 +73,8 @@ func main() {
 	}
 	defer db.Close()
 
+	infos := GetBitcoinsInfo(db)
+
 	f, err := os.OpenFile("output.txt", os.O_WRONLY|os.O_CREATE, 0644)
 	if err != nil {
 		fmt.Println("open file error:", err)
@@ -155,6 +157,8 @@ func main() {
 				}
 
 				bitcoinlist = append(bitcoinlist, data)
+
+				// write to mysql
 				query := fmt.Sprintf("INSERT INTO %s (name, marketcap, price, volume_24h, circulating_supply, change_24h, time) values (?, ?, ?, ?, ?, ?, NOW())", table)
 				insert, err := db.Exec(query, data.Name, data.MarketCap, data.Price, data.Volume_24h, data.CirculatingSupply, data.Change_24h)
 				if err != nil {
@@ -168,6 +172,27 @@ func main() {
 							fmt.Println(err)
 						} else {
 							fmt.Println(lastid)
+						}
+					}
+				}
+
+				// write to new tables
+				id, ok := infos[data.Name]
+				if !ok {
+					lid, err := AddInfo(data.Name, db)
+					if err != nil {
+						fmt.Println("add new coin error:", err)
+					} else {
+						id = lid
+						_, err = AddMarketCap(id, data.MarketCap, data.CirculatingSupply, data.Volume_24h, data.Change_24h, db)
+						if err != nil {
+							fmt.Printf("add %s, id(%d), MarketCap(%d), CirculatingSupply(%d), Volume_24h(%d), Change_24h(%f) error: %s\n",
+								data.Name, id, data.MarketCap, data.CirculatingSupply, data.Volume_24h, data.Change_24h, err)
+						}
+
+						_, err = AddPrice(id, data.Price, db)
+						if err != nil {
+							fmt.Println("add %s, id(%d), Price(%f), error: %s\n", data.Name, id, data.Price)
 						}
 					}
 				}
