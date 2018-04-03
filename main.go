@@ -26,20 +26,22 @@ type BitcoinData struct {
 }
 
 const (
-	DEFAULT_USER     = "chy"
-	DEFAULT_PASSWD   = "123456"
-	DEFAULT_IP       = "192.168.56.102"
-	DEFAULT_PORT     = "3306"
-	DEFAULT_DATABASE = "test"
-	DEFAULT_TABLE    = "bitcoins"
-	DEFAULT_TIMEOUT  = 30
+	DEFAULT_USER            = "chy"
+	DEFAULT_PASSWD          = "123456"
+	DEFAULT_IP              = "192.168.56.102"
+	DEFAULT_PORT            = "3306"
+	DEFAULT_DATABASE        = "test"
+	DEFAULT_TABLE           = "bitcoins"
+	DEFAULT_TIMEOUT         = 30
+	DEFAULT_MARKETCAP_FLUSH = 1200
 
-	CONF_KEY_DBUSER   = "dbUser"
-	CONF_KEY_DBPASSWD = "dbPasswd"
-	CONF_KEY_DBIP     = "dbIP"
-	CONF_KEY_DBPORT   = "dbPort"
-	CONF_KEY_DATABASE = "database"
-	CONF_KEY_TIMEOUT  = "timeout"
+	CONF_KEY_DBUSER          = "dbUser"
+	CONF_KEY_DBPASSWD        = "dbPasswd"
+	CONF_KEY_DBIP            = "dbIP"
+	CONF_KEY_DBPORT          = "dbPort"
+	CONF_KEY_DATABASE        = "database"
+	CONF_KEY_TIMEOUT         = "timeout"
+	CONF_KEY_MARKETCAP_FLUSH = "marketcap_flush"
 )
 
 func main() {
@@ -54,6 +56,7 @@ func main() {
 	viper.SetDefault(CONF_KEY_DBPORT, DEFAULT_PORT)
 	viper.SetDefault(CONF_KEY_DATABASE, DEFAULT_DATABASE)
 	viper.SetDefault(CONF_KEY_TIMEOUT, DEFAULT_TIMEOUT)
+	viper.SetDefault(CONF_KEY_MARKETCAP_FLUSH, DEFAULT_MARKETCAP_FLUSH)
 
 	if err := viper.ReadInConfig(); err != nil {
 		fmt.Println("read config error: ", err)
@@ -65,6 +68,7 @@ func main() {
 	dbPort := viper.GetString(CONF_KEY_DBPORT)
 	database := viper.GetString(CONF_KEY_DATABASE)
 	timeout := viper.GetInt(CONF_KEY_TIMEOUT)
+	mcapFlush := viper.GetInt64(CONF_KEY_MARKETCAP_FLUSH)
 
 	dataSource := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", dbUser, dbPasswd, dbAddr, dbPort, database)
 
@@ -99,6 +103,7 @@ func main() {
 	})
 
 	bitcoinlist := make([]*BitcoinData, 0)
+	timestamp := time.Now().Unix()
 
 	c.OnHTML("#currencies-all > tbody", func(e *colly.HTMLElement) {
 		e.DOM.Find("tr").Each(func(i int, s *goquery.Selection) {
@@ -168,10 +173,13 @@ func main() {
 						id = lid
 					}
 				} else {
-					_, err = AddMarketCap(id, data.MarketCap, data.CirculatingSupply, data.Volume_24h, data.Change_24h, db)
-					if err != nil {
-						fmt.Printf("add %s, id(%d), MarketCap(%d), CirculatingSupply(%d), Volume_24h(%d), Change_24h(%f) error: %s\n",
-							data.Name, id, data.MarketCap, data.CirculatingSupply, data.Volume_24h, data.Change_24h, err)
+					t := timestamp % mcapFlush
+					if t > 1169 || t < 30 {
+						_, err = AddMarketCap(id, data.MarketCap, data.CirculatingSupply, data.Volume_24h, data.Change_24h, db)
+						if err != nil {
+							fmt.Printf("add %s, id(%d), MarketCap(%d), CirculatingSupply(%d), Volume_24h(%d), Change_24h(%f) error: %s\n",
+								data.Name, id, data.MarketCap, data.CirculatingSupply, data.Volume_24h, data.Change_24h, err)
+						}
 					}
 
 					_, err = AddPrice(id, data.Price, db)
