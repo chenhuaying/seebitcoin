@@ -32,12 +32,14 @@ const (
 	DEFAULT_PORT     = "3306"
 	DEFAULT_DATABASE = "test"
 	DEFAULT_TABLE    = "bitcoins"
+	DEFAULT_TIMEOUT  = 30
 
 	CONF_KEY_DBUSER   = "dbUser"
 	CONF_KEY_DBPASSWD = "dbPasswd"
 	CONF_KEY_DBIP     = "dbIP"
 	CONF_KEY_DBPORT   = "dbPort"
 	CONF_KEY_DATABASE = "database"
+	CONF_KEY_TIMEOUT  = "timeout"
 )
 
 func main() {
@@ -51,6 +53,7 @@ func main() {
 	viper.SetDefault(CONF_KEY_DBIP, DEFAULT_IP)
 	viper.SetDefault(CONF_KEY_DBPORT, DEFAULT_PORT)
 	viper.SetDefault(CONF_KEY_DATABASE, DEFAULT_DATABASE)
+	viper.SetDefault(CONF_KEY_TIMEOUT, DEFAULT_TIMEOUT)
 
 	if err := viper.ReadInConfig(); err != nil {
 		fmt.Println("read config error: ", err)
@@ -61,6 +64,7 @@ func main() {
 	dbAddr := viper.GetString(CONF_KEY_DBIP)
 	dbPort := viper.GetString(CONF_KEY_DBPORT)
 	database := viper.GetString(CONF_KEY_DATABASE)
+	timeout := viper.GetInt(CONF_KEY_TIMEOUT)
 
 	dataSource := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", dbUser, dbPasswd, dbAddr, dbPort, database)
 
@@ -80,7 +84,7 @@ func main() {
 	defer f.Close()
 
 	c := colly.NewCollector()
-	c.SetRequestTimeout(30 * time.Second)
+	c.SetRequestTimeout(time.Duration(timeout) * time.Second)
 	c.WithTransport(&http.Transport{
 		Proxy: http.ProxyFromEnvironment,
 		DialContext: (&net.Dialer{
