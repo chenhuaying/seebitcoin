@@ -38,7 +38,6 @@ const (
 	CONF_KEY_DBIP     = "dbIP"
 	CONF_KEY_DBPORT   = "dbPort"
 	CONF_KEY_DATABASE = "database"
-	CONF_KEY_TABLE    = "table"
 )
 
 func main() {
@@ -52,7 +51,6 @@ func main() {
 	viper.SetDefault(CONF_KEY_DBIP, DEFAULT_IP)
 	viper.SetDefault(CONF_KEY_DBPORT, DEFAULT_PORT)
 	viper.SetDefault(CONF_KEY_DATABASE, DEFAULT_DATABASE)
-	viper.SetDefault(CONF_KEY_TABLE, DEFAULT_TABLE)
 
 	if err := viper.ReadInConfig(); err != nil {
 		fmt.Println("read config error: ", err)
@@ -63,7 +61,6 @@ func main() {
 	dbAddr := viper.GetString(CONF_KEY_DBIP)
 	dbPort := viper.GetString(CONF_KEY_DBPORT)
 	database := viper.GetString(CONF_KEY_DATABASE)
-	table := viper.GetString(CONF_KEY_TABLE)
 
 	dataSource := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", dbUser, dbPasswd, dbAddr, dbPort, database)
 
@@ -158,25 +155,6 @@ func main() {
 
 				bitcoinlist = append(bitcoinlist, data)
 
-				// write to mysql
-				query := fmt.Sprintf("INSERT INTO %s (name, marketcap, price, volume_24h, circulating_supply, change_24h, time) values (?, ?, ?, ?, ?, ?, NOW())", table)
-				insert, err := db.Exec(query, data.Name, data.MarketCap, data.Price, data.Volume_24h, data.CirculatingSupply, data.Change_24h)
-				if err != nil {
-					fmt.Println("insert into database error:", err)
-				} else {
-					if insert == nil {
-						fmt.Println("insert return nil")
-					} else {
-						lastid, err := insert.LastInsertId()
-						if err != nil {
-							fmt.Println(err)
-						} else {
-							fmt.Println(lastid)
-						}
-					}
-				}
-
-				// write to new tables
 				id, ok := infos[data.Name]
 				if !ok {
 					lid, err := AddInfo(data.Name, db)
