@@ -174,7 +174,7 @@ func main() {
 					}
 				} else {
 					t := timestamp % mcapFlush
-					if t > 1169 || t < 30 {
+					if t > mcapFlush-31 || t < 30 {
 						_, err = AddMarketCap(id, data.MarketCap, data.CirculatingSupply, data.Volume_24h, data.Change_24h, db)
 						if err != nil {
 							fmt.Printf("add %s, id(%d), MarketCap(%d), CirculatingSupply(%d), Volume_24h(%d), Change_24h(%f) error: %s\n",
