@@ -168,7 +168,7 @@ func main() {
 
 				bitcoinlist = append(bitcoinlist, data)
 
-				id, ok := infos[data.Name]
+				id, ok := infos[data.Symbol]
 				if !ok {
 					lid, err := AddInfo(data.Name, data.Symbol, db)
 					if err != nil {

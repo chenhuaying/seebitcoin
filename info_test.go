@@ -25,7 +25,7 @@ func TestGetInfo(t *testing.T) {
 		fmt.Println("id = ", chyId)
 	}
 
-	btcId, ok := infos["Bitcoin"]
+	btcId, ok := infos["BTC"]
 	if ok {
 		fmt.Println("btcId = ", btcId)
 	} else {
