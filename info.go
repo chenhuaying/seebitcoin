@@ -73,8 +73,8 @@ func GetBitcoinsInfo(db *sql.DB) (infos map[string]int64) {
 	return
 }
 
-func AddInfo(name string, db *sql.DB) (int64, error) {
-	insert, err := db.Exec("insert into cc_info (name, time) values (?, NOW())", name)
+func AddInfo(name, symbol string, db *sql.DB) (int64, error) {
+	insert, err := db.Exec("insert into cc_info (name, symbol, time) values (?, ?, NOW())", name, symbol)
 	if err == nil {
 		lastid, err := insert.LastInsertId()
 		if err == nil {

@@ -41,7 +41,7 @@ func TestAddInfo(t *testing.T) {
 	}
 	defer db.Close()
 
-	name, err := AddInfo("Bitcoin", db)
+	name, err := AddInfo("Bitcoin", "BTC", db)
 	if err != nil {
 		t.Error("add info error:", err)
 	} else {

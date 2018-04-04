@@ -18,6 +18,7 @@ import (
 
 type BitcoinData struct {
 	Name              string
+	Symbol            string
 	MarketCap         int64
 	Price             float64
 	Volume_24h        int64
@@ -112,6 +113,9 @@ func main() {
 			if exist {
 				data.Name = name
 				fmt.Println(data.Name)
+
+				data.Symbol = s.Find("td:nth-child(3)").Text()
+
 				mCapAttr, ex := s.Find("td:nth-child(4)").Attr("data-usd")
 				if ex {
 					marketCap, err := strconv.ParseFloat(mCapAttr, 64)
@@ -166,13 +170,16 @@ func main() {
 
 				id, ok := infos[data.Name]
 				if !ok {
-					lid, err := AddInfo(data.Name, db)
+					lid, err := AddInfo(data.Name, data.Symbol, db)
 					if err != nil {
 						fmt.Println("add new coin error:", err)
+						id = -1
 					} else {
 						id = lid
 					}
-				} else {
+				}
+
+				if id >= 0 {
 					t := timestamp % mcapFlush
 					if t > mcapFlush-31 || t < 30 {
 						_, err = AddMarketCap(id, data.MarketCap, data.CirculatingSupply, data.Volume_24h, data.Change_24h, db)
