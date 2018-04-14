@@ -168,7 +168,7 @@ func main() {
 
 				bitcoinlist = append(bitcoinlist, data)
 
-				id, ok := infos[data.Symbol]
+				id, ok := infos[data.Symbol+"_"+data.Name]
 				if !ok {
 					lid, err := AddInfo(data.Name, data.Symbol, db)
 					if err != nil {
@@ -212,8 +212,8 @@ func main() {
 		f.Write(bData)
 	})
 
-	err = c.Visit("https://coinmarketcap.com/coins/views/all/")
-	//c.Visit("https://coinmarketcap.com/coins/")
+	//err = c.Visit("https://coinmarketcap.com/coins/views/all/")
+	err = c.Visit("https://coinmarketcap.com/all/views/all/")
 	if err != nil {
 		fmt.Println("vist coins all error:", err)
 	}
