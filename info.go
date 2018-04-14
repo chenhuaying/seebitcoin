@@ -62,7 +62,7 @@ func GetBitcoinsInfo(db *sql.DB) (infos map[string]int64) {
 		if err != nil {
 			fmt.Println("parse info id error:", err)
 		} else {
-			infos[string(values[2])] = id
+			infos[string(values[2])+"_"+string(values[1])] = id
 		}
 		//fmt.Println("-----------------------------------")
 	}
